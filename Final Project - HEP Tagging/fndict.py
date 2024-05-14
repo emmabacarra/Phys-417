@@ -91,14 +91,15 @@ class collation:
     # Define your "collation" function to collate data samples into batch tensors
     def collate_fn(batch):
         # Separate the features and labels from the batch
-        features, labels = zip(*batch)
+        features = [item[0] for item in batch]
+        labels = [item[1] for item in batch]
 
         # Pad the features to the maximum length in the batch
         features = pad_sequence([torch.tensor(event) for event in features], 
                                        batch_first=True, padding_value=0)
 
         # Convert the labels to tensor
-        labels = torch.tensor(labels)
+        labels = torch.stack(labels)
 
         return features, labels
     
@@ -138,7 +139,7 @@ class trainer:
         return loss_list
 
     # Define a function to evaluate the model
-    def evaluate(model, batch_size, valids):
+    def evaluate(model, batch_size, valids, loss_fn):
         model.eval()
         loss_list = []
 
@@ -148,14 +149,20 @@ class trainer:
             src = src.to(DEVICE)
             tgt = tgt.to(DEVICE)
 
-            tgt_input = tgt[:-1, :]
+            # # This is meant for sequence to sequence tasks:
+            # tgt_input = tgt[:-1, :]
 
-            src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = masker.create_mask(src, tgt_input)
+            # src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = masker.create_mask(src, tgt_input)
 
-            logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
+            # logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
 
-            tgt_out = tgt[1:, :]
-            loss = math.loss_fn(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
+            # tgt_out = tgt[1:, :]
+            # loss = loss_fn(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
+            # loss_list.append(loss.item())
+
+            # This is meant for classification tasks:
+            logits = model(src)
+            loss = loss_fn(logits, tgt.long())
             loss_list.append(loss.item())
 
         return loss_list
