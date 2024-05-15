@@ -29,12 +29,24 @@ padding with LSTMs
 - Packed LSTMs: PyTorch offers functionalities for Packed LSTMs, which allow you to handle sequences of different lengths without padding. This approach keeps track of the actual sequence lengths for each input and utilizes this information during training.
 
 masking (if adding pads to data)
-- Pad the 'x' matrices with 0 representing "no information."
-- Create a mask tensor with the same dimensions as the padded 'x' matrices. Fill the mask tensor with 1s for non-padded elements and 0s for padded elements.
-- Use a masked LSTM layer that takes the 'x' matrices and the mask tensor as input. The mask will prevent the LSTM from processing padded elements during backpropagation.
+1. Pad the 'x' matrices with 0 representing "no information."
+2. Create a mask tensor with the same dimensions as the padded 'x' matrices. Fill the mask tensor with 1s for non-padded elements and 0s for padded elements.
+3. Use a masked LSTM layer that takes the 'x' matrices and the mask tensor as input. The mask will prevent the LSTM from processing padded elements during backpropagation.
 
 combining attention mechanism with masking
-- Pad your 'x' matrices with a specific value (e.g., -1) representing "no information."
-- Create a mask tensor with the same dimensions as the padded 'x' matrices. Fill the mask tensor with 1s for non-padded elements and 0s for padded elements.
-- Use an attention layer within your RNN architecture (e.g., LSTM). This layer takes the padded 'x' matrix and the mask tensor as input.
-- The attention mechanism calculates attention scores for each element in the 'x' matrix. However, during these calculations, the mask is applied. It essentially multiplies the attention scores with the corresponding elements in the mask tensor. This ensures that scores for padded elements (with 0s in the mask) become zero, effectively removing their influence on the final attention weights.
+1. Pad your 'x' matrices with a specific value (e.g., -1) representing "no information."
+2. Create a mask tensor with the same dimensions as the padded 'x' matrices. Fill the mask tensor with 1s for non-padded elements and 0s for padded elements.
+3. Use an attention layer within your RNN architecture (e.g., LSTM). This layer takes the padded 'x' matrix and the mask tensor as input.
+4. The attention mechanism calculates attention scores for each element in the 'x' matrix. However, during these calculations, the mask is applied. It essentially multiplies the attention scores with the corresponding elements in the mask tensor. This ensures that scores for padded elements (with 0s in the mask) become zero, effectively removing their influence on the final attention weights.
+
+packed LSTMs
+- Packed Sequences Store Length Information: When you create a packed sequence using torch.nn.utils.rnn.pack_padded_sequence, it stores the actual length of each sequence within the batch. This information is crucial for the LSTM to process sequences of different lengths effectively.
+- Padding Adds Unnecessary Information: Padding adds artificial elements (e.g., zeros) to shorter sequences to create a uniform length. This information is irrelevant to the actual particle collision event and can even hinder the LSTM's learning process.
+- Packed Sequences Improve Efficiency: By avoiding padding, packed sequences utilize memory more efficiently, especially when dealing with sequences with significant variation in length.
+
+using packed sequences:
+1. Preprocess your data: Perform scaling/normalization on the features within the 'x' matrices.
+2. Pad the sequences (optional): While not necessary for packed sequences, you can optionally pad all sequences to a maximum length for easier data handling before packing. However, this might not be the most efficient approach.
+3. Sort the sequences (optional): Sorting the sequences by descending length can improve performance in some cases.
+4. Create a packed sequence: Use torch.nn.utils.rnn.pack_padded_sequence to create a packed sequence object. This object will contain the actual sequence data and the corresponding sequence lengths.
+5. Pass the packed sequence to the LSTM: Your LSTM layer can directly process the packed sequence object, taking into account the variable lengths of the sequences within the batch.
