@@ -8,10 +8,10 @@ the goal is to design a neural network with pytorch that can train with the even
 
 ------------------------------------
 
-so far, i've experimented with trying a transformer model without masking and preprocessing the data with sklearn's standard scaler. the architecture includes an encoder layer but not a decoder layer, and with training i've only been able to get around 40% accuracy. 
-
 ideas for preprocessing the raw data (noting that the event features can vary in row dimension), 
 and the best approach to designing the right architecture and picking the proper techniques to use?
+
+google's BERT model: https://huggingface.co/docs/transformers/en/model_doc/bert
 
 preprocessing
 - scaling: try IQR scaler (interquartile range)
@@ -44,9 +44,13 @@ packed LSTMs
 - Padding Adds Unnecessary Information: Padding adds artificial elements (e.g., zeros) to shorter sequences to create a uniform length. This information is irrelevant to the actual particle collision event and can even hinder the LSTM's learning process.
 - Packed Sequences Improve Efficiency: By avoiding padding, packed sequences utilize memory more efficiently, especially when dealing with sequences with significant variation in length.
 
-using packed sequences:
+using packed sequences: https://stackoverflow.com/questions/51030782/why-do-we-pack-the-sequences-in-pytorch
 1. Preprocess your data: Perform scaling/normalization on the features within the 'x' matrices.
 2. Pad the sequences (optional): While not necessary for packed sequences, you can optionally pad all sequences to a maximum length for easier data handling before packing. However, this might not be the most efficient approach.
 3. Sort the sequences (optional): Sorting the sequences by descending length can improve performance in some cases.
 4. Create a packed sequence: Use torch.nn.utils.rnn.pack_padded_sequence to create a packed sequence object. This object will contain the actual sequence data and the corresponding sequence lengths.
 5. Pass the packed sequence to the LSTM: Your LSTM layer can directly process the packed sequence object, taking into account the variable lengths of the sequences within the batch.
+
+using pack_padded_sequence from torch.nn.utils.rnn:
+https://gist.github.com/Tushar-N/dfca335e370a2bc3bc79876e6270099e
+https://gist.github.com/davidnvq/594c539b76fc52bef49ec2332e6bcd15
