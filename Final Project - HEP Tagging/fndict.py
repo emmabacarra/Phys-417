@@ -6,6 +6,7 @@ from torch.nn import Transformer
 from torch import Tensor
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
+import numpy as np
 
 # Create a torch.device object to tell pytorch where to store your tensors: cpu or gpu
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,6 +57,22 @@ class masker():
         src_padding_mask = (src == pad_index).transpose(0, 1)
         tgt_padding_mask = (tgt == pad_index).transpose(0, 1)
         return src_mask, tgt_mask, src_padding_mask, tgt_padding_mask
+
+
+    def pad_and_create_mask(batch):
+        max_len = max(sequence.shape[0] for sequence in batch)
+        padded_batch = np.zeros((len(batch), max_len, batch[0].shape[1]))
+        mask = np.zeros((len(batch), max_len))
+
+        # Pad each sequence and create its corresponding mask
+        for i, sequence in enumerate(batch):
+            padded_batch[i, :sequence.shape[0], :] = sequence
+            mask[i, :sequence.shape[0]] = 1  # Elements where the mask is 1 represent actual values, 0s represent padding
+
+        # Invert the mask
+        mask = mask == 0
+
+        return padded_batch, mask
 
 
 
