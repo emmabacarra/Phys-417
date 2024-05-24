@@ -7,6 +7,7 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
+from fractions import Fraction
 
 # Create a torch.device object to tell pytorch where to store your tensors: cpu or gpu
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -195,3 +196,22 @@ def highest_divisor(n):
         if n % i == 0:
             return i
     return 1
+
+def pi_formatter(x, pos):
+    frac = Fraction(x / np.pi).limit_denominator(16)  # Adjust the denominator limit as needed
+    if frac.denominator == 1:
+        if frac.numerator == 0:
+            return "0"
+        elif frac.numerator == 1:
+            return r"$\pi$"
+        elif frac.numerator == -1:
+            return r"$-\pi$"
+        else:
+            return r"${}\pi$".format(frac.numerator)
+    else:
+        if frac.numerator == 1:
+            return r"$\frac{\pi}{%d}$" % frac.denominator
+        elif frac.numerator == -1:
+            return r"$-\frac{\pi}{%d}$" % frac.denominator
+        else:
+            return r"$\frac{%d\pi}{%d}$" % (frac.numerator, frac.denominator)
